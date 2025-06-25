@@ -5,7 +5,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+     "install": "npm install --legacy-peer-deps"
   },
   "prisma": {
     "seed": "tsx --require dotenv/config scripts/seed.ts"

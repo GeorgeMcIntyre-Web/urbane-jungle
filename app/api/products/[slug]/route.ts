@@ -1,51 +1,25 @@
-export const dynamic = 'force-dynamic'
+import { prisma } from "@/lib/db";          // adjust path
+import { Prisma } from "@prisma/client";
 
-import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+type ProductWithReviews = Prisma.ProductGetPayload<{
+  include: { reviews: true };
+}>;
 
-export async function GET(
-  _req: NextRequest,
-  { params }: { params: { slug: string } },
-) {
-  const product = await prisma.product.findUnique({
-    where: { slug: params.slug, isActive: true },
-    include: {
-      category: true,
-      images: { orderBy: { sortOrder: 'asc' } },
-      reviews: {
-        where: { isApproved: true },
-        include: { user: { select: { name: true, image: true } } },
-        orderBy: { createdAt: 'desc' },
-      },
-    },
-  })
+type ProductWithAvg = ProductWithReviews & { averageRating: number };
 
-  if (!product) {
-    return NextResponse.json({ error: 'Product not found' }, { status: 404 })
-  }
+export async function GET() {
+  const products = await prisma.product.findMany({ include: { reviews: true } });
 
-  const averageRating =
-    product.reviews.length > 0
-      ? product.reviews.reduce(
-          (acc: number, review: { rating: number }) => acc + review.rating,
-          0,
-        ) / product.reviews.length
-      : 0
+  if (products.length is 0) return Response.json([]);
 
-  const relatedProducts = await prisma.product.findMany({
-    where: {
-      categoryId: product.categoryId,
-      id: { not: product.id },
-      isActive: true,
-    },
-    include: {
-      images: { where: { isPrimary: true }, take: 1 },
-    },
-    take: 4,
-  })
+  const productsWithRatings: ProductWithAvg[] = products.map((product: ProductWithReviews) => ({
+    ...product,
+    averageRating:
+      product.reviews.length is 0
+        ? 0
+        : product.reviews.reduce((sum, r) => sum + r.rating, 0) /
+          product.reviews.length,
+  }));
 
-  return NextResponse.json({
-    product: { ...product, averageRating, reviewCount: product.reviews.length },
-    relatedProducts,
-  })
+  return Response.json(productsWithRatings);
 }

@@ -41,14 +41,19 @@ export async function GET(
       )
     }
 
-    // Calculate average rating for the single product
-    const averageRating =
+    // Calculate average ratings
+const productsWithRatings = products.map(
+  (product: { reviews: { rating: number }[] }) => ({
+    ...product,
+    averageRating:
       product.reviews.length > 0
         ? product.reviews.reduce(
-        (acc: number, review: { rating: number }) => acc + review.rating,
-        0,
-      ) / product.reviews.length
-    : 0;
+            (acc: number, review: { rating: number }) => acc + review.rating,
+            0,
+          ) / product.reviews.length
+        : 0,
+  }),
+);
 
     // Get related products
     const relatedProducts = await prisma.product.findMany({

@@ -3,6 +3,17 @@ export const dynamic = 'force-dynamic'
 
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma } from '@prisma/client'
+
+type ProductWithRelations = Prisma.ProductGetPayload<{
+  include: {
+    category: true
+    images: true
+    reviews: {
+      select: { rating: true }
+    }
+  }
+}>
 
 export async function GET() {
   try {
@@ -26,10 +37,10 @@ export async function GET() {
     })
 
     // Calculate average ratings
-    const productsWithRatings = products.map(product => ({
+    const productsWithRatings = products.map((product: ProductWithRelations) => ({
       ...product,
       averageRating: product.reviews.length > 0
-        ? product.reviews.reduce((acc, review) => acc + review.rating, 0) / product.reviews.length
+        ? product.reviews.reduce((acc: number, review) => acc + review.rating, 0) / product.reviews.length
         : 0,
       reviewCount: product.reviews.length
     }))

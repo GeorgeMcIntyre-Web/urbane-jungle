@@ -1,5 +1,7 @@
 
 import { Metadata } from 'next'
+export const runtime = 'edge'
+
 import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/header'
 import { Footer } from '@/components/layout/footer'
@@ -95,7 +97,7 @@ export default async function CategoryPage({ params, searchParams }: CategoryPag
 
             {/* Products Grid */}
             <div className="lg:col-span-3">
-              <ProductGrid 
+              <ProductGrid
                 category={category.slug}
                 searchParams={searchParams}
               />

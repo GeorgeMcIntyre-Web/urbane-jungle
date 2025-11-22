@@ -1,13 +1,3 @@
-'use client'
-
-import { useState } from 'react'
-import { motion } from 'framer-motion'
-import { Heading, Text } from '@/components/ui/typography'
-import { GlassCard } from '@/components/ui/glass-card'
-import { LuxuryButton } from '@/components/ui/luxury-button'
-import { Minus, Plus, Heart, ShoppingCart, ZoomIn } from 'lucide-react'
-import Image from 'next/image'
-
 export default function ProductPage({ params }: { params: { slug: string } }) {
   const [quantity, setQuantity] = useState(1)
   const [selectedSize, setSelectedSize] = useState('medium')

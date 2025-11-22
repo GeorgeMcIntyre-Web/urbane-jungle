@@ -2,7 +2,9 @@ import { drizzle } from 'drizzle-orm/libsql';
 import { createClient } from '@libsql/client';
 import * as schema from './schema';
 
-const url = process.env.TURSO_DATABASE_URL || 'file:local.db';
+// Edge Runtime requires a remote URL (libsql://, https://, wss://)
+// Cannot use file:// URLs in Cloudflare Workers/Pages
+const url = process.env.TURSO_DATABASE_URL;
 const authToken = process.env.TURSO_AUTH_TOKEN;
 
 const client = createClient({

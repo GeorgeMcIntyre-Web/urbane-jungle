@@ -16,7 +16,7 @@ interface CartItemCardProps {
 }
 
 export function CartItemCard({ item }: CartItemCardProps) {
-  const { updateQuantity, removeItem, isLoading } = useCart()
+  const { updateQuantity, removeItem } = useCart()
   const [quantity, setQuantity] = useState(item.quantity)
 
   const formatPrice = (price: number) => {
@@ -29,7 +29,7 @@ export function CartItemCard({ item }: CartItemCardProps) {
   const handleQuantityChange = async (newQuantity: number) => {
     if (newQuantity < 1) return
     if (newQuantity > item.product.stockQuantity) return
-    
+
     setQuantity(newQuantity)
     await updateQuantity(item.id, newQuantity)
   }
@@ -57,13 +57,13 @@ export function CartItemCard({ item }: CartItemCardProps) {
 
         {/* Product Details */}
         <div className="flex-1 min-w-0">
-          <Link 
+          <Link
             href={`/products/${item.product.slug}`}
             className="text-sm font-medium hover:text-primary"
           >
             {item.product.name}
           </Link>
-          
+
           <div className="mt-1 flex items-center space-x-2">
             <span className="text-sm font-semibold currency">
               {formatPrice(item.product.price)}
@@ -81,12 +81,12 @@ export function CartItemCard({ item }: CartItemCardProps) {
               variant="outline"
               size="sm"
               onClick={() => handleQuantityChange(quantity - 1)}
-              disabled={isLoading || quantity <= 1}
+              disabled={quantity <= 1}
               className="h-8 w-8 p-0"
             >
               <Minus className="h-3 w-3" />
             </Button>
-            
+
             <Input
               type="number"
               value={quantity}
@@ -99,14 +99,13 @@ export function CartItemCard({ item }: CartItemCardProps) {
               className="h-8 w-16 text-center"
               min={1}
               max={item.product.stockQuantity}
-              disabled={isLoading}
             />
-            
+
             <Button
               variant="outline"
               size="sm"
               onClick={() => handleQuantityChange(quantity + 1)}
-              disabled={isLoading || quantity >= item.product.stockQuantity}
+              disabled={quantity >= item.product.stockQuantity}
               className="h-8 w-8 p-0"
             >
               <Plus className="h-3 w-3" />
@@ -116,7 +115,6 @@ export function CartItemCard({ item }: CartItemCardProps) {
               variant="ghost"
               size="sm"
               onClick={() => removeItem(item.id)}
-              disabled={isLoading}
               className="h-8 w-8 p-0 ml-auto text-destructive hover:text-destructive"
             >
               <Trash2 className="h-3 w-3" />

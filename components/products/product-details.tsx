@@ -8,13 +8,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 import { Product } from '@/lib/types'
 import { useCart } from '@/hooks/use-cart'
-import { 
-  Star, 
-  ShoppingCart, 
-  Heart, 
-  Share2, 
-  Truck, 
-  Shield, 
+import {
+  Star,
+  ShoppingCart,
+  Heart,
+  Share2,
+  Truck,
+  Shield,
   RotateCcw,
   Droplets,
   Sun,
@@ -34,7 +34,7 @@ interface ProductDetailsProps {
 export function ProductDetails({ product }: ProductDetailsProps) {
   const [quantity, setQuantity] = useState(1)
   const [isWishlisted, setIsWishlisted] = useState(false)
-  const { addItem, isLoading } = useCart()
+  const { addItem } = useCart()
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -43,7 +43,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     }).format(price)
   }
 
-  const discountPercent = product.compareAtPrice 
+  const discountPercent = product.compareAtPrice
     ? Math.round(((Number(product.compareAtPrice) - Number(product.price)) / Number(product.compareAtPrice)) * 100)
     : 0
 
@@ -55,8 +55,8 @@ export function ProductDetails({ product }: ProductDetailsProps) {
     setIsWishlisted(!isWishlisted)
     toast({
       title: isWishlisted ? 'Removed from wishlist' : 'Added to wishlist',
-      description: isWishlisted 
-        ? 'Item removed from your wishlist' 
+      description: isWishlisted
+        ? 'Item removed from your wishlist'
         : 'Item added to your wishlist',
     })
   }
@@ -109,27 +109,26 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <Badge variant="secondary">Featured</Badge>
           )}
         </div>
-        
+
         <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
-        
+
         {/* Rating */}
         <div className="flex items-center gap-4 mb-4">
           <div className="flex items-center gap-2">
             {[...Array(5)].map((_, i) => (
               <Star
                 key={i}
-                className={`h-5 w-5 ${
-                  i < Math.floor(product.averageRating)
+                className={`h-5 w-5 ${i < Math.floor(product.averageRating)
                     ? 'fill-yellow-400 text-yellow-400'
                     : 'text-gray-300'
-                }`}
+                  }`}
               />
             ))}
             <span className="text-sm text-muted-foreground">
               {product.averageRating.toFixed(1)} ({product.reviewCount} reviews)
             </span>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Button
               variant="ghost"
@@ -163,61 +162,61 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             </>
           )}
         </div>
-        
+
         {product.shortDescription && (
           <p className="text-muted-foreground">{product.shortDescription}</p>
         )}
       </div>
 
       {/* Plant Care Information */}
-      {(product.careLevel || product.lightRequirement || product.wateringFrequency || 
+      {(product.careLevel || product.lightRequirement || product.wateringFrequency ||
         product.isPetSafe !== null || product.plantSize || product.growthRate) && (
-        <Card>
-          <CardContent className="p-4">
-            <h3 className="font-semibold mb-3">Plant Care Information</h3>
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              {product.careLevel && (
-                <div className="flex items-center gap-2">
-                  {getCareIcon('care')}
-                  <span>Care Level: <strong>{product.careLevel.toLowerCase()}</strong></span>
-                </div>
-              )}
-              {product.lightRequirement && (
-                <div className="flex items-center gap-2">
-                  {getCareIcon('light')}
-                  <span>Light: <strong>{product.lightRequirement.replace('_', ' ').toLowerCase()}</strong></span>
-                </div>
-              )}
-              {product.wateringFrequency && (
-                <div className="flex items-center gap-2">
-                  {getCareIcon('watering')}
-                  <span>Water: <strong>{product.wateringFrequency.replace('_', ' ').toLowerCase()}</strong></span>
-                </div>
-              )}
-              {product.isPetSafe !== null && (
-                <div className="flex items-center gap-2">
-                  {getCareIcon('pet')}
-                  <span className={product.isPetSafe ? 'text-green-600' : 'text-red-600'}>
-                    <strong>{product.isPetSafe ? 'Pet Safe' : 'Not Pet Safe'}</strong>
-                  </span>
-                </div>
-              )}
-              {product.plantSize && (
-                <div className="flex items-center gap-2">
-                  {getCareIcon('size')}
-                  <span>Size: <strong>{product.plantSize.toLowerCase()}</strong></span>
-                </div>
-              )}
-              {product.growthRate && (
-                <div className="flex items-center gap-2">
-                  {getCareIcon('growth')}
-                  <span>Growth: <strong>{product.growthRate.toLowerCase()}</strong></span>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-3">Plant Care Information</h3>
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                {product.careLevel && (
+                  <div className="flex items-center gap-2">
+                    {getCareIcon('care')}
+                    <span>Care Level: <strong>{product.careLevel.toLowerCase()}</strong></span>
+                  </div>
+                )}
+                {product.lightRequirement && (
+                  <div className="flex items-center gap-2">
+                    {getCareIcon('light')}
+                    <span>Light: <strong>{product.lightRequirement.replace('_', ' ').toLowerCase()}</strong></span>
+                  </div>
+                )}
+                {product.wateringFrequency && (
+                  <div className="flex items-center gap-2">
+                    {getCareIcon('watering')}
+                    <span>Water: <strong>{product.wateringFrequency.replace('_', ' ').toLowerCase()}</strong></span>
+                  </div>
+                )}
+                {product.isPetSafe !== null && (
+                  <div className="flex items-center gap-2">
+                    {getCareIcon('pet')}
+                    <span className={product.isPetSafe ? 'text-green-600' : 'text-red-600'}>
+                      <strong>{product.isPetSafe ? 'Pet Safe' : 'Not Pet Safe'}</strong>
+                    </span>
+                  </div>
+                )}
+                {product.plantSize && (
+                  <div className="flex items-center gap-2">
+                    {getCareIcon('size')}
+                    <span>Size: <strong>{product.plantSize.toLowerCase()}</strong></span>
+                  </div>
+                )}
+                {product.growthRate && (
+                  <div className="flex items-center gap-2">
+                    {getCareIcon('growth')}
+                    <span>Growth: <strong>{product.growthRate.toLowerCase()}</strong></span>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
       {/* Stock Status */}
       <div className="space-y-2">
@@ -237,7 +236,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             <span className="text-sm text-red-600 font-medium">Out of Stock</span>
           </div>
         )}
-        
+
         {product.sku && (
           <p className="text-sm text-muted-foreground">SKU: {product.sku}</p>
         )}
@@ -267,7 +266,7 @@ export function ProductDetails({ product }: ProductDetailsProps) {
               +
             </Button>
           </div>
-          
+
           <Button
             onClick={handleAddToCart}
             disabled={product.stockQuantity === 0 || isLoading}
@@ -275,11 +274,11 @@ export function ProductDetails({ product }: ProductDetailsProps) {
             size="lg"
           >
             <ShoppingCart className="mr-2 h-5 w-5" />
-            {product.stockQuantity === 0 
-              ? 'Out of Stock' 
-              : isLoading 
-              ? 'Adding...' 
-              : 'Add to Cart'
+            {product.stockQuantity === 0
+              ? 'Out of Stock'
+              : isLoading
+                ? 'Adding...'
+                : 'Add to Cart'
             }
           </Button>
         </div>

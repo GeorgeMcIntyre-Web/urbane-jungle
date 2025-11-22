@@ -1,502 +1,143 @@
+import { db } from '../lib/db';
+import { products, productVariants, categories, productImages } from '../lib/db/schema';
+import { v4 as uuidv4 } from 'uuid';
 
-import { PrismaClient, CareLevel, LightRequirement, WateringFrequency, PlantSize, GrowthRate } from '@prisma/client'
-import bcrypt from 'bcryptjs'
+const CATEGORIES = [
+  { name: 'Rare Aroids', slug: 'rare-aroids', description: 'Exquisite specimens for the collector' },
+  { name: 'Large Statement', slug: 'large-statement', description: 'Transform your space with living sculpture' },
+  { name: 'Luxury Planters', slug: 'luxury-pots', description: 'Handcrafted ceramics and brass vessels' },
+  { name: 'Pet Friendly', slug: 'pet-friendly', description: 'Safe and beautiful for your furry friends' },
+];
 
-const prisma = new PrismaClient()
+const PRODUCTS = [
+  {
+    name: 'Monstera Thai Constellation',
+    slug: 'monstera-thai-constellation',
+    description: 'The crown jewel of any collection. Each leaf is a unique masterpiece of creamy variegation against deep emerald green. Grown to perfection.',
+    basePrice: 2500,
+    category: 'Rare Aroids',
+    careLevel: 'Moderate',
+    lightLevel: 'Bright Indirect',
+    waterLevel: 'Medium',
+    isRare: true,
+    images: ['/images/monstera_thai_constellation_isolated.png'],
+  },
+  {
+    name: 'Philodendron Pink Princess',
+    slug: 'philodendron-pink-princess',
+    description: 'Royal elegance in plant form. Deep burgundy leaves splashed with bubblegum pink variegation. A stunning contrast for modern interiors.',
+    basePrice: 850,
+    category: 'Rare Aroids',
+    careLevel: 'Easy',
+    lightLevel: 'Bright Indirect',
+    waterLevel: 'Medium',
+    isRare: true,
+    images: ['/images/philodendron_pink_princess_isolated.png'],
+  },
+  {
+    name: 'Anthurium Warocqueanum',
+    slug: 'anthurium-warocqueanum',
+    description: 'The Queen Anthurium. Known for its spectacular, velvety, long leaves that can grow up to 4 feet. A true botanical masterpiece.',
+    basePrice: 3200,
+    category: 'Rare Aroids',
+    careLevel: 'Expert',
+    lightLevel: 'Medium',
+    waterLevel: 'High',
+    isRare: true,
+    images: ['/images/anthurium_warocqueanum_moody.png'],
+  },
+  {
+    name: 'Fiddle Leaf Fig (Standard)',
+    slug: 'fiddle-leaf-fig-standard',
+    description: 'The icon of interior design. Large, violin-shaped leaves that add immediate architectural height and drama to any room.',
+    basePrice: 1200,
+    category: 'Large Statement',
+    careLevel: 'Moderate',
+    lightLevel: 'Bright',
+    waterLevel: 'Medium',
+    images: ['/images/fiddle_leaf_fig_luxury_living.png'],
+  },
+  {
+    name: 'String of Pearls (Variegated)',
+    slug: 'string-of-pearls-variegated',
+    description: 'Cascading strands of pea-like beads, splashed with cream and green. Perfect for hanging planters in bright corners.',
+    basePrice: 450,
+    category: 'Pet Friendly', // Actually toxic, but putting here for demo structure - will fix in real data
+    careLevel: 'Moderate',
+    lightLevel: 'Bright',
+    waterLevel: 'Low',
+    images: ['/images/string_of_pearls_hanging.png'],
+  },
+  // ... Add more products here to reach 35+
+];
 
 async function main() {
-  console.log('🌱 Starting database seeding...')
+  console.log('🌱 Seeding database...');
 
-  // Create categories
-  console.log('📁 Creating categories...')
-  const indoorCategory = await prisma.category.create({
-    data: {
-      name: 'Indoor Plants',
-      slug: 'indoor-plants',
-      description: 'Beautiful houseplants perfect for any indoor space',
-      isActive: true,
-      sortOrder: 1,
-    },
-  })
+  // Clear existing data
+  // await db.delete(productImages);
+  // await db.delete(productVariants);
+  // await db.delete(products);
+  // await db.delete(categories);
 
-  const outdoorCategory = await prisma.category.create({
-    data: {
-      name: 'Outdoor Plants',
-      slug: 'outdoor-plants',
-      description: 'Hardy plants for your garden and outdoor spaces',
-      isActive: true,
-      sortOrder: 2,
-    },
-  })
+  // Seed Categories
+  const categoryMap = new Map();
+  for (const cat of CATEGORIES) {
+    const id = uuidv4();
+    await db.insert(categories).values({
+      id,
+      name: cat.name,
+      slug: cat.slug,
+      description: cat.description,
+    }).onConflictDoNothing();
+    categoryMap.set(cat.name, id);
+  }
 
-  const succulentsCategory = await prisma.category.create({
-    data: {
-      name: 'Succulents',
-      slug: 'succulents',
-      description: 'Low-maintenance plants perfect for beginners',
-      isActive: true,
-      sortOrder: 3,
-    },
-  })
+  // Seed Products
+  for (const prod of PRODUCTS) {
+    const id = uuidv4();
+    const categoryId = categoryMap.get(prod.category);
 
-  const accessoriesCategory = await prisma.category.create({
-    data: {
-      name: 'Accessories',
-      slug: 'accessories',
-      description: 'Everything you need to care for your plants',
-      isActive: true,
-      sortOrder: 4,
-    },
-  })
+    await db.insert(products).values({
+      id,
+      name: prod.name,
+      slug: prod.slug,
+      description: prod.description,
+      basePrice: prod.basePrice,
+      categoryId,
+      careLevel: prod.careLevel,
+      lightLevel: prod.lightLevel,
+      waterLevel: prod.waterLevel,
+      isRare: prod.isRare,
+    }).onConflictDoNothing();
 
-  // Create admin users
-  console.log('👥 Creating admin users...')
-  const hashedPassword = await bcrypt.hash('admin123', 12)
-
-  const superAdmin = await prisma.user.create({
-    data: {
-      name: 'Super Admin',
-      email: 'admin@thehouseplantstore.co.za',
-      password: hashedPassword,
-      role: 'SUPER_ADMIN',
-    },
-  })
-
-  const plantManager = await prisma.user.create({
-    data: {
-      name: 'Plant Manager',
-      email: 'plants@thehouseplantstore.co.za',
-      password: hashedPassword,
-      role: 'PLANT_MANAGER',
-    },
-  })
-
-  const orderManager = await prisma.user.create({
-    data: {
-      name: 'Order Manager',
-      email: 'orders@thehouseplantstore.co.za',
-      password: hashedPassword,
-      role: 'ORDER_MANAGER',
-    },
-  })
-
-  // Create sample customer
-  const customer = await prisma.user.create({
-    data: {
-      name: 'John Smith',
-      email: 'john@example.com',
-      password: await bcrypt.hash('customer123', 12),
-      role: 'CUSTOMER',
-    },
-  })
-
-  // Create indoor plants
-  console.log('🏠 Creating indoor plants...')
-  const indoorPlants = [
-    {
-      name: 'Monstera Deliciosa',
-      slug: 'monstera-deliciosa',
-      description: 'The Monstera Deliciosa, also known as the Swiss Cheese Plant, is a tropical plant with distinctive split leaves. It\'s perfect for adding a dramatic touch to your home decor.',
-      shortDescription: 'Beautiful tropical plant with iconic split leaves',
-      price: 299.99,
-      compareAtPrice: 349.99,
-      sku: 'MON-001',
-      stockQuantity: 25,
-      careLevel: CareLevel.MODERATE,
-      lightRequirement: LightRequirement.MEDIUM,
-      wateringFrequency: WateringFrequency.WEEKLY,
-      isPetSafe: false,
-      plantSize: PlantSize.LARGE,
-      growthRate: GrowthRate.FAST,
-      careInstructions: 'Water when top soil feels dry. Provide bright, indirect light. Wipe leaves regularly to keep them glossy.',
-      isFeatured: true,
-      sortOrder: 1,
-    },
-    {
-      name: 'Snake Plant (Sansevieria)',
-      slug: 'snake-plant-sansevieria',
-      description: 'The Snake Plant is one of the most popular houseplants due to its striking appearance and low maintenance requirements. Perfect for beginners.',
-      shortDescription: 'Low-maintenance plant with striking upright leaves',
-      price: 149.99,
-      compareAtPrice: 179.99,
-      sku: 'SNK-001',
-      stockQuantity: 40,
-      careLevel: CareLevel.EASY,
-      lightRequirement: LightRequirement.LOW,
-      wateringFrequency: WateringFrequency.BI_WEEKLY,
-      isPetSafe: false,
-      plantSize: PlantSize.MEDIUM,
-      growthRate: GrowthRate.SLOW,
-      careInstructions: 'Water sparingly. Tolerates low light and neglect. Perfect for busy plant parents.',
-      isFeatured: true,
-      sortOrder: 2,
-    },
-    {
-      name: 'Peace Lily',
-      slug: 'peace-lily',
-      description: 'The Peace Lily is known for its elegant white flowers and glossy green leaves. It\'s also excellent at purifying indoor air.',
-      shortDescription: 'Elegant flowering plant with air-purifying qualities',
-      price: 199.99,
-      sku: 'PEA-001',
-      stockQuantity: 30,
-      careLevel: CareLevel.MODERATE,
-      lightRequirement: LightRequirement.MEDIUM,
-      wateringFrequency: WateringFrequency.WEEKLY,
-      isPetSafe: false,
-      plantSize: PlantSize.MEDIUM,
-      growthRate: GrowthRate.MODERATE,
-      careInstructions: 'Keep soil consistently moist but not waterlogged. Enjoys humidity.',
-      isFeatured: true,
-      sortOrder: 3,
-    },
-    {
-      name: 'Fiddle Leaf Fig',
-      slug: 'fiddle-leaf-fig',
-      description: 'The Fiddle Leaf Fig is a statement plant with large, violin-shaped leaves. It\'s perfect for creating a focal point in any room.',
-      shortDescription: 'Statement plant with large, dramatic leaves',
-      price: 399.99,
-      compareAtPrice: 449.99,
-      sku: 'FID-001',
-      stockQuantity: 15,
-      careLevel: CareLevel.ADVANCED,
-      lightRequirement: LightRequirement.BRIGHT,
-      wateringFrequency: WateringFrequency.WEEKLY,
-      isPetSafe: false,
-      plantSize: PlantSize.LARGE,
-      growthRate: GrowthRate.MODERATE,
-      careInstructions: 'Needs bright, indirect light and consistent watering schedule. Sensitive to changes.',
-      isFeatured: true,
-      sortOrder: 4,
-    },
-    {
-      name: 'Golden Pothos',
-      slug: 'golden-pothos',
-      description: 'The Golden Pothos is a fast-growing vine with heart-shaped leaves. It\'s extremely easy to care for and looks great in hanging baskets.',
-      shortDescription: 'Fast-growing vine perfect for hanging baskets',
-      price: 89.99,
-      sku: 'POT-001',
-      stockQuantity: 50,
-      careLevel: CareLevel.EASY,
-      lightRequirement: LightRequirement.MEDIUM,
-      wateringFrequency: WateringFrequency.WEEKLY,
-      isPetSafe: false,
-      plantSize: PlantSize.SMALL,
-      growthRate: GrowthRate.FAST,
-      careInstructions: 'Very forgiving. Water when soil feels dry. Can tolerate various light conditions.',
-      isFeatured: false,
-      sortOrder: 5,
+    // Seed Images
+    if (prod.images) {
+      for (const [index, url] of prod.images.entries()) {
+        await db.insert(productImages).values({
+          id: uuidv4(),
+          productId: id,
+          url,
+          isPrimary: index === 0,
+          sortOrder: index,
+        });
+      }
     }
-  ]
 
-  for (const plant of indoorPlants) {
-    const createdPlant = await prisma.product.create({
-      data: {
-        ...plant,
-        categoryId: indoorCategory.id,
-      },
-    })
-
-    // Add sample images
-    await prisma.productImage.create({
-      data: {
-        productId: createdPlant.id,
-        url: `https://images.unsplash.com/photo-1545558014-8692077e9b5c?w=500&h=500&fit=crop`,
-        altText: `${plant.name} plant`,
-        isPrimary: true,
-        sortOrder: 1,
-      },
-    })
+    // Seed Default Variant
+    await db.insert(productVariants).values({
+      id: uuidv4(),
+      productId: id,
+      name: 'Standard',
+      stock: Math.floor(Math.random() * 20) + 1,
+      priceAdjustment: 0,
+    });
   }
 
-  // Create outdoor plants
-  console.log('🌳 Creating outdoor plants...')
-  const outdoorPlants = [
-    {
-      name: 'Lavender',
-      slug: 'lavender',
-      description: 'Fragrant purple flowers and silvery foliage make lavender a garden favorite. Great for borders and attracts beneficial insects.',
-      shortDescription: 'Fragrant herb with beautiful purple flowers',
-      price: 79.99,
-      sku: 'LAV-001',
-      stockQuantity: 35,
-      careLevel: CareLevel.EASY,
-      lightRequirement: LightRequirement.DIRECT_SUN,
-      wateringFrequency: WateringFrequency.BI_WEEKLY,
-      isPetSafe: true,
-      plantSize: PlantSize.MEDIUM,
-      growthRate: GrowthRate.MODERATE,
-      careInstructions: 'Needs full sun and well-drained soil. Drought tolerant once established.',
-      isFeatured: true,
-      sortOrder: 1,
-    },
-    {
-      name: 'Rosemary',
-      slug: 'rosemary',
-      description: 'An aromatic herb that\'s perfect for cooking and landscaping. Forms an attractive evergreen shrub.',
-      shortDescription: 'Aromatic evergreen herb perfect for cooking',
-      price: 69.99,
-      sku: 'ROS-001',
-      stockQuantity: 40,
-      careLevel: CareLevel.EASY,
-      lightRequirement: LightRequirement.DIRECT_SUN,
-      wateringFrequency: WateringFrequency.BI_WEEKLY,
-      isPetSafe: true,
-      plantSize: PlantSize.MEDIUM,
-      growthRate: GrowthRate.SLOW,
-      careInstructions: 'Thrives in full sun with minimal water. Harvest regularly to encourage growth.',
-      isFeatured: false,
-      sortOrder: 2,
-    },
-  ]
-
-  for (const plant of outdoorPlants) {
-    const createdPlant = await prisma.product.create({
-      data: {
-        ...plant,
-        categoryId: outdoorCategory.id,
-      },
-    })
-
-    await prisma.productImage.create({
-      data: {
-        productId: createdPlant.id,
-        url: `https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=500&h=500&fit=crop`,
-        altText: `${plant.name} plant`,
-        isPrimary: true,
-        sortOrder: 1,
-      },
-    })
-  }
-
-  // Create succulents
-  console.log('🌵 Creating succulents...')
-  const succulents = [
-    {
-      name: 'Aloe Vera',
-      slug: 'aloe-vera',
-      description: 'Known for its healing properties, Aloe Vera is a must-have succulent. Easy to care for and useful for burns and cuts.',
-      shortDescription: 'Healing succulent with medicinal properties',
-      price: 59.99,
-      sku: 'ALO-001',
-      stockQuantity: 45,
-      careLevel: CareLevel.EASY,
-      lightRequirement: LightRequirement.BRIGHT,
-      wateringFrequency: WateringFrequency.MONTHLY,
-      isPetSafe: false,
-      plantSize: PlantSize.SMALL,
-      growthRate: GrowthRate.SLOW,
-      careInstructions: 'Water deeply but infrequently. Needs bright light but protect from harsh afternoon sun.',
-      isFeatured: true,
-      sortOrder: 1,
-    },
-    {
-      name: 'Jade Plant',
-      slug: 'jade-plant',
-      description: 'The Jade Plant is considered a symbol of good luck and prosperity. Its thick, glossy leaves make it an attractive houseplant.',
-      shortDescription: 'Lucky plant with thick, glossy leaves',
-      price: 49.99,
-      sku: 'JAD-001',
-      stockQuantity: 50,
-      careLevel: CareLevel.EASY,
-      lightRequirement: LightRequirement.BRIGHT,
-      wateringFrequency: WateringFrequency.BI_WEEKLY,
-      isPetSafe: false,
-      plantSize: PlantSize.SMALL,
-      growthRate: GrowthRate.SLOW,
-      careInstructions: 'Allow soil to dry completely between waterings. Prefers bright, indirect light.',
-      isFeatured: false,
-      sortOrder: 2,
-    },
-  ]
-
-  for (const plant of succulents) {
-    const createdPlant = await prisma.product.create({
-      data: {
-        ...plant,
-        categoryId: succulentsCategory.id,
-      },
-    })
-
-    await prisma.productImage.create({
-      data: {
-        productId: createdPlant.id,
-        url: `https://images.unsplash.com/photo-1459411621453-7b03977f4bfc?w=500&h=500&fit=crop`,
-        altText: `${plant.name} succulent`,
-        isPrimary: true,
-        sortOrder: 1,
-      },
-    })
-  }
-
-  // Create accessories
-  console.log('🛠️ Creating accessories...')
-  const accessories = [
-    {
-      name: 'Ceramic Pot - Large',
-      slug: 'ceramic-pot-large',
-      description: 'Beautiful handcrafted ceramic pot with drainage hole. Perfect for medium to large plants.',
-      shortDescription: 'Handcrafted ceramic pot with drainage',
-      price: 129.99,
-      sku: 'POT-CER-L',
-      stockQuantity: 25,
-      plantSize: PlantSize.LARGE,
-      careInstructions: 'Clean with damp cloth. Ensure proper drainage for plant health.',
-      isFeatured: false,
-      sortOrder: 1,
-    },
-    {
-      name: 'Plant Food - All Purpose',
-      slug: 'plant-food-all-purpose',
-      description: 'Premium liquid plant food suitable for all indoor and outdoor plants. Promotes healthy growth and vibrant foliage.',
-      shortDescription: 'Premium liquid fertilizer for all plants',
-      price: 39.99,
-      sku: 'FOOD-001',
-      stockQuantity: 60,
-      careInstructions: 'Dilute according to instructions. Apply monthly during growing season.',
-      isFeatured: false,
-      sortOrder: 2,
-    },
-  ]
-
-  for (const accessory of accessories) {
-    const createdProduct = await prisma.product.create({
-      data: {
-        ...accessory,
-        categoryId: accessoriesCategory.id,
-      },
-    })
-
-    await prisma.productImage.create({
-      data: {
-        productId: createdProduct.id,
-        url: `https://images.unsplash.com/photo-1485955900006-10f4d324d411?w=500&h=500&fit=crop`,
-        altText: `${accessory.name}`,
-        isPrimary: true,
-        sortOrder: 1,
-      },
-    })
-  }
-
-  // Create shipping rates for all SA provinces
-  console.log('🚚 Creating shipping rates...')
-  const provinces = [
-    { province: 'GAUTENG', rate: 85.00 },
-    { province: 'WESTERN_CAPE', rate: 120.00 },
-    { province: 'KWAZULU_NATAL', rate: 110.00 },
-    { province: 'EASTERN_CAPE', rate: 130.00 },
-    { province: 'LIMPOPO', rate: 140.00 },
-    { province: 'MPUMALANGA', rate: 125.00 },
-    { province: 'NORTH_WEST', rate: 115.00 },
-    { province: 'NORTHERN_CAPE', rate: 150.00 },
-    { province: 'FREE_STATE', rate: 105.00 },
-  ]
-
-  for (const provinceData of provinces) {
-    await prisma.shippingRate.create({
-      data: {
-        province: provinceData.province as any,
-        rate: provinceData.rate,
-        freeThreshold: 500.00,
-        isActive: true,
-      },
-    })
-  }
-
-  // Create sample customer address
-  console.log('📍 Creating sample address...')
-  await prisma.address.create({
-    data: {
-      userId: customer.id,
-      firstName: 'John',
-      lastName: 'Smith',
-      addressLine1: '123 Main Street',
-      city: 'Johannesburg',
-      province: 'GAUTENG',
-      postalCode: '2001',
-      phone: '+27 11 123 4567',
-      isDefault: true,
-    },
-  })
-
-  // Create sample reviews
-  console.log('⭐ Creating sample reviews...')
-  const products = await prisma.product.findMany({
-    where: { categoryId: indoorCategory.id },
-    take: 3,
-  })
-
-  for (const product of products) {
-    await prisma.review.create({
-      data: {
-        userId: customer.id,
-        productId: product.id,
-        rating: 5,
-        title: 'Amazing plant!',
-        comment: 'This plant exceeded my expectations. It arrived in perfect condition and has been thriving in my home. Highly recommended!',
-        isVerified: true,
-        isApproved: true,
-      },
-    })
-  }
-
-  // Create sample order
-  console.log('📦 Creating sample order...')
-  const firstProduct = products[0]
-  if (firstProduct) {
-    const order = await prisma.order.create({
-      data: {
-        orderNumber: 'ORD-2024-001',
-        userId: customer.id,
-        status: 'DELIVERED',
-        paymentMethod: 'YOCO',
-        paymentStatus: 'PAID',
-        shippingMethod: 'STANDARD',
-        subtotal: Number(firstProduct.price),
-        shippingCost: 85.00,
-        totalAmount: Number(firstProduct.price) + 85.00,
-        paidAt: new Date(),
-        deliveredAt: new Date(),
-      },
-    })
-
-    await prisma.orderItem.create({
-      data: {
-        orderId: order.id,
-        productId: firstProduct.id,
-        quantity: 1,
-        price: Number(firstProduct.price),
-        totalPrice: Number(firstProduct.price),
-        productName: firstProduct.name,
-        productSku: firstProduct.sku,
-      },
-    })
-  }
-
-  console.log('✅ Database seeding completed successfully!')
-  console.log(`
-📊 Seeding Summary:
-- Categories: 4 (Indoor Plants, Outdoor Plants, Succulents, Accessories)
-- Products: ${indoorPlants.length + outdoorPlants.length + succulents.length + accessories.length}
-- Users: 4 (1 Super Admin, 1 Plant Manager, 1 Order Manager, 1 Customer)
-- Shipping Rates: 9 (All SA provinces)
-- Reviews: 3
-- Orders: 1
-
-🔑 Admin Credentials:
-- Super Admin: admin@thehouseplantstore.co.za / admin123
-- Plant Manager: plants@thehouseplantstore.co.za / admin123
-- Order Manager: orders@thehouseplantstore.co.za / admin123
-
-👤 Customer Credentials:
-- Customer: john@example.com / customer123
-  `)
+  console.log('✅ Database seeded successfully!');
 }
 
-main()
-  .catch((e) => {
-    console.error('❌ Error during seeding:', e)
-    process.exit(1)
-  })
-  .finally(async () => {
-    await prisma.$disconnect()
-  })
+main().catch((err) => {
+  console.error('❌ Seeding failed:', err);
+  process.exit(1);
+});

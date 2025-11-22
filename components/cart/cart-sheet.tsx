@@ -23,7 +23,7 @@ interface CartSheetProps {
 }
 
 export function CartSheet({ open, onOpenChange }: CartSheetProps) {
-  const { items, totalAmount, itemCount, isLoading } = useCart()
+  const { items, itemCount } = useCart()
 
   const formatPrice = (price: number) => {
     return new Intl.NumberFormat('en-ZA', {
@@ -75,16 +75,16 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
             </ScrollArea>
 
             <Separator className="my-4" />
-            
+
             <div className="space-y-4">
               <div className="flex items-center justify-between text-lg font-semibold">
                 <span>Total</span>
                 <span className="currency">{formatPrice(totalAmount)}</span>
               </div>
-              
+
               <div className="space-y-2">
-                <Button 
-                  className="w-full" 
+                <Button
+                  className="w-full"
                   asChild
                   disabled={isLoading || items.length === 0}
                 >
@@ -92,8 +92,8 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
                     Checkout
                   </Link>
                 </Button>
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="w-full"
                   asChild
                 >
@@ -102,7 +102,7 @@ export function CartSheet({ open, onOpenChange }: CartSheetProps) {
                   </Link>
                 </Button>
               </div>
-              
+
               <p className="text-xs text-muted-foreground text-center">
                 Shipping calculated at checkout
               </p>

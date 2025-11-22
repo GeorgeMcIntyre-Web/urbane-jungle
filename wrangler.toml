@@ -1,0 +1,11 @@
+name = "urbane-jungle"
+compatibility_date = "2024-01-01"
+
+[site]
+bucket = ".next"
+
+[[env]]
+name = "production"
+routes = [
+  { pattern = "urbanejungle.org/*", zone_name = "urbanejungle.org" }
+]

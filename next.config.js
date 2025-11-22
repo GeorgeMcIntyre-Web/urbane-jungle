@@ -2,17 +2,14 @@ const path = require('path');
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  output: 'export',
-  eslint: {
-    ignoreDuringBuilds: true,
-  },
   typescript: {
-    ignoreBuildErrors: true, // Prevent build failures from minor type issues
+    ignoreBuildErrors: true,
   },
   images: {
-    unoptimized: true
+    domains: ['cdn.coverr.co', 'images.unsplash.com', 'res.cloudinary.com'],
+    unoptimized: true,
   },
-  trailingSlash: true, // Recommended for Cloudflare Pages
+  trailingSlash: true,
 };
 
 module.exports = nextConfig;

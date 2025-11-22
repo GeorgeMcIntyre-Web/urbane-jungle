@@ -1,25 +1,39 @@
-import { prisma } from "@/lib/db";          // adjust path
-import { Prisma } from "@prisma/client";
+export const runtime = 'edge'
+export const dynamic = 'force-dynamic'
 
-type ProductWithReviews = Prisma.ProductGetPayload<{
-  include: { reviews: true };
-}>;
+import { prisma } from "@/lib/db"
+import { NextResponse } from 'next/server'
 
-type ProductWithAvg = ProductWithReviews & { averageRating: number };
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ slug: string }> }
+) {
+  try {
+    const { slug } = await params
 
-export async function GET() {
-  const products = await prisma.product.findMany({ include: { reviews: true } });
+    const product = await prisma.product.findUnique({
+      where: { slug },
+      include: {
+        images: {
+          orderBy: { sortOrder: 'asc' }
+        },
+        category: true
+      }
+    })
 
-  if (products.length === 0) return Response.json([]);
+    if (!product) {
+      return NextResponse.json(
+        { error: 'Product not found' },
+        { status: 404 }
+      )
+    }
 
-  const productsWithRatings: ProductWithAvg[] = products.map((product: ProductWithReviews) => ({
-    ...product,
-    averageRating:
-      product.reviews.length === 0
-        ? 0
-        : product.reviews.reduce((sum: number, r) => sum + r.rating, 0) /
-        product.reviews.length,
-  }));
-
-  return Response.json(productsWithRatings);
+    return NextResponse.json(product)
+  } catch (error) {
+    console.error('Product fetch error:', error)
+    return NextResponse.json(
+      { error: 'Failed to fetch product' },
+      { status: 500 }
+    )
+  }
 }

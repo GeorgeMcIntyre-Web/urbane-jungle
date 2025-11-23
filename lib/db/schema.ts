@@ -83,3 +83,13 @@ export const orderItems = sqliteTable('order_items', {
     quantity: integer('quantity').notNull(),
     priceAtPurchase: real('price_at_purchase').notNull(),
 });
+
+// Cart Items
+export const cartItems = sqliteTable('cart_items', {
+    id: text('id').primaryKey(),
+    userId: text('user_id').notNull().references(() => users.id),
+    productId: text('product_id').notNull().references(() => products.id),
+    quantity: integer('quantity').notNull().default(1),
+    createdAt: integer('created_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+    updatedAt: integer('updated_at', { mode: 'timestamp' }).default(sql`(strftime('%s', 'now'))`),
+});

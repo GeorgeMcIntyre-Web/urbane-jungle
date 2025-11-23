@@ -2,7 +2,9 @@
 export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
+import { products, categories, productImages } from '@/lib/db/schema'
+import { eq, or, like, sql, and } from 'drizzle-orm'
 
 export async function GET(request: NextRequest) {
   try {
@@ -13,50 +15,43 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ products: [] })
     }
 
-    const products = await prisma.product.findMany({
-      where: {
-        isActive: true,
-        OR: [
-          {
-            name: {
-              contains: query,
-              mode: 'insensitive'
-            }
-          },
-          {
-            description: {
-              contains: query,
-              mode: 'insensitive'
-            }
-          },
-          {
-            category: {
-              name: {
-                contains: query,
-                mode: 'insensitive'
-              }
-            }
-          }
-        ]
-      },
-      include: {
-        category: {
-          select: {
-            name: true
-          }
-        },
-        images: {
-          where: { isPrimary: true },
-          take: 1
-        }
-      },
-      take: 10,
-      orderBy: {
-        name: 'asc'
+    const searchPattern = `%${query}%`
+
+    const results = await db.select({
+      product: products,
+      categoryName: categories.name
+    })
+      .from(products)
+      .leftJoin(categories, eq(products.categoryId, categories.id))
+      .where(
+        or(
+          like(products.name, searchPattern),
+          like(products.description, searchPattern),
+          like(categories.name, searchPattern)
+        )
+      )
+      .limit(10)
+
+    // Fetch primary images
+    const productIds = results.map(r => r.product.id)
+    const images = productIds.length > 0
+      ? await db.select().from(productImages)
+        .where(and(
+          sql`${productImages.productId} IN ${productIds}`,
+          eq(productImages.isPrimary, true)
+        ))
+      : []
+
+    const formattedProducts = results.map(r => {
+      const primaryImage = images.find(img => img.productId === r.product.id)
+      return {
+        ...r.product,
+        category: { name: r.categoryName },
+        images: primaryImage ? [primaryImage] : []
       }
     })
 
-    return NextResponse.json({ products })
+    return NextResponse.json({ products: formattedProducts })
   } catch (error) {
     console.error('Search error:', error)
     return NextResponse.json(

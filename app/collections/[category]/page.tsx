@@ -1,6 +1,7 @@
 
+
 import { Metadata } from 'next'
-export const runtime = 'edge'
+// export const runtime = 'edge' // Removed for compatibility
 
 import { notFound } from 'next/navigation'
 import { Header } from '@/components/layout/header'
@@ -8,7 +9,9 @@ import { Footer } from '@/components/layout/footer'
 import { ProductGrid } from '@/components/products/product-grid'
 import { ProductFilters } from '@/components/products/product-filters'
 import { Breadcrumb } from '@/components/ui/breadcrumb'
-import { prisma } from '@/lib/db'
+import { db } from '@/lib/db'
+import { categories } from '@/lib/db/schema'
+import { eq } from 'drizzle-orm'
 
 interface CategoryPageProps {
   params: {
@@ -28,18 +31,8 @@ interface CategoryPageProps {
 }
 
 async function getCategory(slug: string) {
-  const category = await prisma.category.findFirst({
-    where: {
-      slug: slug,
-      isActive: true,
-    },
-    include: {
-      parent: true,
-      children: true,
-    }
-  })
-
-  return category
+  const result = await db.select().from(categories).where(eq(categories.slug, slug)).limit(1)
+  return result[0]
 }
 
 export async function generateMetadata({ params }: CategoryPageProps): Promise<Metadata> {
